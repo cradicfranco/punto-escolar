@@ -2,6 +2,42 @@
   const year = document.querySelector('[data-year]');
   if (year) year.textContent = String(new Date().getFullYear());
 
+  const carousel = document.querySelector('[data-carousel]');
+  if (carousel) {
+    const track = carousel.querySelector('[data-carousel-track]');
+    const slides = [...carousel.querySelectorAll('[data-carousel-slide]')];
+    const dots = [...carousel.querySelectorAll('[data-carousel-dot]')];
+    const previous = carousel.querySelector('[data-carousel-prev]');
+    const next = carousel.querySelector('[data-carousel-next]');
+    const viewport = carousel.querySelector('[data-carousel-viewport]');
+    const status = carousel.querySelector('[data-carousel-status]');
+    let activeSlide = 0;
+
+    const showSlide = (requestedIndex) => {
+      if (!track || slides.length === 0) return;
+      activeSlide = (requestedIndex + slides.length) % slides.length;
+      track.style.transform = `translateX(-${activeSlide * 100}%)`;
+      slides.forEach((slide, index) => {
+        const inactive = index !== activeSlide;
+        slide.setAttribute('aria-hidden', String(inactive));
+        slide.toggleAttribute('inert', inactive);
+      });
+      dots.forEach((dot, index) => {
+        dot.setAttribute('aria-current', String(index === activeSlide));
+      });
+      if (status) status.textContent = `Imagen ${activeSlide + 1} de ${slides.length}`;
+    };
+
+    previous?.addEventListener('click', () => showSlide(activeSlide - 1));
+    next?.addEventListener('click', () => showSlide(activeSlide + 1));
+    dots.forEach((dot, index) => dot.addEventListener('click', () => showSlide(index)));
+    viewport?.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') showSlide(activeSlide - 1);
+      if (event.key === 'ArrowRight') showSlide(activeSlide + 1);
+    });
+    showSlide(0);
+  }
+
   const heroImage = document.querySelector('[data-hero-image]');
   if (heroImage) {
     const useLocalFallback = () => {
@@ -36,6 +72,7 @@
       const visual = document.createElement('div');
       visual.className = 'product-visual';
       visual.style.setProperty('--product-bg', product.fondo);
+      visual.setAttribute('role', 'img');
       visual.setAttribute('aria-label', `Ilustración de ${product.nombre}`);
 
       const number = document.createElement('span');
